@@ -1,6 +1,7 @@
 import { Request as Req, Response as Res } from 'express'
 import { getCustomRepository } from 'typeorm'
 import { SurveysRepository } from '../repositories/SurveysRepository'
+import * as yup from 'yup'
 
 
 class SurveysController{
@@ -18,6 +19,17 @@ class SurveysController{
 
         const { title, description } = req.body
 
+        const schema = yup.object().shape({
+            title: yup.string().required(),
+            description: yup.string().required()
+        })
+
+        try{
+            await schema.validate(req.body, { abortEarly: true })
+        } catch(err) {
+            return res.status(400).json({ error: err })
+        }
+
         const surveysRepository = getCustomRepository(SurveysRepository)
 
         const survey = surveysRepository.create({ title, description })
@@ -30,6 +42,16 @@ class SurveysController{
     async delete(req: Req, res: Res){
 
         const { title } = req.body
+
+        const schema = yup.object().shape({
+            title: yup.string().required()
+        })
+
+        try{
+            await schema.validate(req.body, { abortEarly: true })
+        } catch(err) {
+            return res.status(400).json({ error: err })
+        }
 
         const surveysRepository = getCustomRepository(SurveysRepository)
 

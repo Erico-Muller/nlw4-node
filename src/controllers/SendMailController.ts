@@ -5,6 +5,8 @@ import { UsersRepository } from '../repositories/UsersRepository'
 import { SurveysRepository } from '../repositories/SurveysRepository'
 import { SurveysUsersRepository } from '../repositories/SurveysUsersRepository'
 import { resolve } from 'path'
+import { AppError } from '../errors/AppError'
+import * as yup from 'yup'
 
 
 class SendMailController{
@@ -13,19 +15,30 @@ class SendMailController{
 
         const { email, survey_id } = req.body
 
+        const schema = yup.object().shape({
+            email: yup.string().email().required(),
+            survey_id: yup.string().required()
+        })
+
+        try{
+            await schema.validate(req.body, { abortEarly: true })
+        } catch(err) {
+            return res.status(400).json({ error: err })
+        }
+
+
         const usersRepository = getCustomRepository(UsersRepository)
         const surveysRepository = getCustomRepository(SurveysRepository)
         const surveysUsersRepository = getCustomRepository(SurveysUsersRepository)
-
 
         const userExists = await usersRepository.findOne({ email })
         const surveyExists = await surveysRepository.findOne({ id: survey_id })
         
         if(!userExists)
-            return res.status(404).json({error: 'user does not exists!'})
+            throw new AppError('user does not exists!', 404)
     
         if(!surveyExists)
-            return res.status(404).json({error: 'survey does not exists!'})
+            throw new AppError('survey does not exists!', 404)
 
     
         const npsPath = resolve(__dirname, '..', 'views', 'emails', 'npsMail.hbs')

@@ -1,6 +1,15 @@
 import nodemailer, { Transporter } from 'nodemailer'
 import handlebars from 'handlebars'
 import fs from 'fs'
+import * as yup from 'yup'
+
+
+interface Params{
+    to: string,
+    subject: string,
+    variables: object,
+    path: string
+}
 
 
 class SendMailService{
@@ -28,15 +37,16 @@ class SendMailService{
         
     }
 
-    async execute(to: string, subject: string, variables: object, path: string){
-        const templateFileContent = fs.readFileSync(path).toString('utf-8')
+    async execute(params: Params){
+
+        const templateFileContent = fs.readFileSync(params.path).toString('utf-8')
 
         const mailTemplateParse = handlebars.compile(templateFileContent)
-        const html = mailTemplateParse(variables)
+        const html = mailTemplateParse(params.variables)
 
         const message = await this.client.sendMail({
-            to,
-            subject,
+            params.to,
+            params.subject,
             html,
             from: 'NPS <noreplay@nps.com.br>'
         })
