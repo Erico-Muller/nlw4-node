@@ -14,9 +14,8 @@ server.use(routes)
 
 server.use((err: Error, req: Req, res: Res, _next: NextFunction) => {
        
-        if (err instanceof AppError) {
+        if(err instanceof AppError) 
             return res.status(err.statusCode).json({ message: err.message })
-        }
 
         return res.status(500).json({
             status: 'Error',
